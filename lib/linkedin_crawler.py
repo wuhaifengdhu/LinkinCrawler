@@ -31,7 +31,8 @@ class LinkedInCrawler(object):
             if skills_content is None:
                 print ("No skills found for %s!" % job_url)
                 continue_not_found += 1
-
+                if continue_not_found > 3:
+                    return False
             else:
                 job_posting.add_job_post(company, job_url, skills_content)
         return True
@@ -50,7 +51,7 @@ class LinkedInCrawler(object):
                 self.chrome_helper.authenticate("https://www.linkedin.com/uas/login-cap", self.accounts[i % 12])
             if not self.__crawl(job_posting, job_type, location, i*25):
                 break
-        print "Total post %i" % sum([len(job_posting[company]) for company in job_posting.job_post_skills.keys()])
+        print "Total post %i" % sum([len(job_posting.job_post_skills[company]) for company in job_posting.job_post_skills.keys()])
         job_posting.save(result_file)
 
 
@@ -58,8 +59,8 @@ if __name__ == '__main__':
     accounts = [("lofter.test.01@gmail.com", "Linkedin0405"), ("kindlebookshare@163.com", "Linkedin0405")]
     crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
                               "../data/skills.dic")
-    # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
-    # us_geography = DictHelper.generate_geography_dic(raw_dict, "na.us", 0)
-    # print us_geography
-    # for key, value in us_geography.items():
-    crawler.craw_job("Data Scientist", "Los Angeles, California".encode('utf-8'), 10000, "../data/log_california.dat")
+    raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
+    us_geography = DictHelper.generate_geography_dic(raw_dict, "na.us", 1)
+    print us_geography
+    for key, value in us_geography.items():
+        crawler.craw_job("Data Scientist", value.encode('utf-8'), 1, "../data/%s.dat" % key.encode('utf-8'))
