@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-1 -*-
-from lib.store_helper import StoreHelper
+from store_helper import StoreHelper
 
 
 class JobPosting(object):
