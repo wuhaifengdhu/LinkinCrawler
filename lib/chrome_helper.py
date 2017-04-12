@@ -25,14 +25,18 @@ class ChromeHelper(object):
         os.environ["webdriver.chrome.driver"] = driver_path
         return webdriver.Chrome(driver_path)
 
-    def authenticate(self, author_url, user, password):
+    def authenticate(self, author_url, account):
         self.__driver.get(author_url)
-        self.__driver.find_element_by_id('session_key-login').send_keys(user)
-        self.__driver.find_element_by_id('session_password-login').send_keys(password)
+        self.__driver.find_element_by_id('session_key-login').clear()
+        self.__driver.find_element_by_id('session_key-login').send_keys(account[0])
+        self.__driver.find_element_by_id('session_password-login').send_keys(account[1])
         self.__driver.find_element_by_id("btn-primary").click()
-        time.sleep(3)
+        time.sleep(30)
         self.__has_authentication = True
         # self.__driver.close()
+
+    def close(self):
+        self.__driver.close()
 
     @staticmethod
     def extract_job_id(web_source):
@@ -45,7 +49,8 @@ class ChromeHelper(object):
             print("Error! Not have authenticate yet!")
             return None
         self.__driver.get(url)
-        delay = 8  # seconds
+        delay = 10  # seconds
+        time.sleep(delay)
         try:
             WebDriverWait(self.__driver, delay).until(
                 EC.presence_of_element_located((By.ID, 'clientPageInstance')))
@@ -58,7 +63,7 @@ class ChromeHelper(object):
 
 if __name__ == "__main__":
     chrome = ChromeHelper()
-    chrome.authenticate("https://www.linkedin.com/uas/login-cap", "wulinkedinmem@gmail.com", "Linkedin0405")
+    chrome.authenticate("https://www.linkedin.com/uas/login-cap", ("wulinkedinmem@gmail.com", "Linkedin0405"))
     web_content = chrome.get_web_source("https://www.linkedin.com/jobs/view/309059479")
     soup = BeautifulSoup(web_content.decode('utf-8'), 'html.parser')
     TextHelper.store_html(soup.prettify().encode('utf-8'), "309059479.html")

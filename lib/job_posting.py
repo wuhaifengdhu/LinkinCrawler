@@ -21,7 +21,7 @@ class JobPosting(object):
         return [key for key, value in self.skills_dic.items() if key.encode('utf-8') in post_content]
 
     def save(self, dict_file):
-        StoreHelper.store_data(self, dict_file)
+        StoreHelper.store_data(self.job_post_skills, dict_file)
 
     @staticmethod
     def load_from_file(file_name):
