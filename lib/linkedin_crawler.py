@@ -47,7 +47,7 @@ class LinkedInCrawler(object):
             if i % 6 == 0:
                 self.chrome_helper.close()
                 self.chrome_helper = ChromeHelper()
-                self.chrome_helper.authenticate("https://www.linkedin.com/uas/login-cap", self.accounts[i % 18])
+                self.chrome_helper.authenticate("https://www.linkedin.com/uas/login-cap", self.accounts[i % 12])
             if not self.__crawl(job_posting, job_type, location, i*25):
                 break
         print "Total post %i" % sum([len(job_posting[company]) for company in job_posting.job_post_skills.keys()])
@@ -55,8 +55,7 @@ class LinkedInCrawler(object):
 
 
 if __name__ == '__main__':
-    accounts = [("some.good.ww@gmail.com", "Linkedin0405"), ("paypalshanghai@163.com", "Linkedin0405"),
-                ("lofter.test.01@gmail.com", "Linkedin0405")]
+    accounts = [("lofter.test.01@gmail.com", "Linkedin0405"), ("kindlebookshare@163.com", "Linkedin0405")]
     crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
                               "../data/skills.dic")
     # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
