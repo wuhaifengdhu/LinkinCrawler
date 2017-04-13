@@ -20,9 +20,6 @@ class TextHelper(object):
             company_name = 'UNKOWN'
         pretty_html = soup.prettify().encode('utf-8')
         skill_content = TextHelper.find_text_between_tag(pretty_html, '"text":', '</code>')
-        file_ = open("debug.html", 'wb')
-        file_.write(pretty_html)
-        file_.close()
         return company_name.encode('utf-8'), skill_content
 
     @staticmethod
