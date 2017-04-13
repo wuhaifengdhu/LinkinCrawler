@@ -41,7 +41,7 @@ class CrawlHelper(object):
         # print description
         soup = BeautifulSoup(web_source, "lxml")
         meta = soup.find('meta', {"property": "og:description"})
-        return meta['content']
+        return meta['content'] if meta is not None else None
 
     @staticmethod
     def get_travel_url(web_source, home_url="https://www.linkedin.com"):
