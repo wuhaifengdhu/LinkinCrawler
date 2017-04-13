@@ -15,7 +15,7 @@ class TextHelper(object):
         soup = BeautifulSoup(web_source.decode('utf-8'), 'html.parser')
         try:
             company_name = soup.find("a", class_="jobs-details-top-card__company-url").getText()
-            print company_name
+            print company_name.encode('utf-8')
         except AttributeError:
             company_name = u'UNKOWN'
         skill_content = TextHelper.find_text_between_tag(soup.prettify().encode('utf-8'), '"text":', '</code>')

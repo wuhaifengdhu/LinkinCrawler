@@ -55,6 +55,17 @@ class LinkedInCrawler(object):
         job_posting.save(result_file)
 
 
+    def get_all_job_id(self, job_type, location, total_page):
+        job_ids = []
+        for i in range(total_page):
+            job_search_url = self.__build_search_url(job_type, location, i * 25)
+            print i
+            job_id_list = self.chrome_helper.extract_job_id(self.chrome_helper.get_web_source(job_search_url))
+            job_ids.extend()
+
+
+
+
 if __name__ == '__main__':
     accounts = [("lofter.test.01@gmail.com", "Linkedin0405"), ("kindlebookshare@163.com", "Linkedin0405")]
     crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
@@ -63,4 +74,4 @@ if __name__ == '__main__':
     us_geography = DictHelper.generate_geography_dic(raw_dict, "na.us", 1)
     print us_geography
     for key, value in us_geography.items():
-        crawler.craw_job("Data Scientist", value.encode('utf-8'), 1, "../data/%s.dat" % key.encode('utf-8'))
+        crawler.craw_job("Data Scientist", value.encode('utf-8'), 10000, "../data/%s.dat" % key.encode('utf-8'))
