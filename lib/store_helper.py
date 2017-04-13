@@ -18,3 +18,7 @@ class StoreHelper(object):
         file_handler.close()
         return data
 
+
+if __name__ == "__main__":
+    StoreHelper.store_data({"wu": "haifeng"}, "../data/post/hi.dat")
+

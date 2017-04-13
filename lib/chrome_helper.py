@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import os
 import time
 import re
+import random
 from text_helper import TextHelper
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,7 +18,7 @@ class ChromeHelper(object):
     def __init__(self):
         self.__home_folder = os.getcwd()
         self.__driver = self.__get_driver()
-        self.__driver.maximize_window()
+        # self.__driver.maximize_window()
         self.__has_authentication = False
 
     def __get_driver(self):
@@ -31,7 +32,7 @@ class ChromeHelper(object):
         self.__driver.find_element_by_id('session_key-login').send_keys(account[0])
         self.__driver.find_element_by_id('session_password-login').send_keys(account[1])
         self.__driver.find_element_by_id("btn-primary").click()
-        time.sleep(10)
+        time.sleep(61)
         self.__has_authentication = True
         # self.__driver.close()
 
@@ -49,7 +50,7 @@ class ChromeHelper(object):
             print("Error! Not have authenticate yet!")
             return None
         self.__driver.get(url)
-        delay = 5  # seconds
+        delay = random.choice([5, 3, 3, 13, 4, 15, 7, 60, 5, 3, 4, 5, 7, 9])  # random delay seconds
         time.sleep(delay)
         try:
             WebDriverWait(self.__driver, delay).until(

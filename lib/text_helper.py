@@ -15,11 +15,15 @@ class TextHelper(object):
         soup = BeautifulSoup(web_source.decode('utf-8'), 'html.parser')
         try:
             company_name = soup.find("a", class_="jobs-details-top-card__company-url").getText()
-            print company_name
+            print company_name.encode('utf-8')
         except AttributeError:
-            company_name = u'UNKOWN'
-        skill_content = TextHelper.find_text_between_tag(soup.prettify().encode('utf-8'), '"text":', '</code>')
-        return company_name, skill_content
+            company_name = 'UNKOWN'
+        pretty_html = soup.prettify().encode('utf-8')
+        skill_content = TextHelper.find_text_between_tag(pretty_html, '"text":', '</code>')
+        file_ = open("debug.html", 'wb')
+        file_.write(pretty_html)
+        file_.close()
+        return company_name.encode('utf-8'), skill_content
 
     @staticmethod
     def find_text_between_tag(content, start_tag="<!--\n", end_tag="\n-->"):
