@@ -1,5 +1,11 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-1 -*-
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
+from __future__ import print_function
 import urlparse
 from urllib import urlencode
 from chrome_helper import ChromeHelper
@@ -20,7 +26,7 @@ class LinkedInCrawler(object):
         self.skills_dict = DictHelper.load_dict_from_dic(skills_dict)
 
     def login(self):
-        print "Switch account, please check old account %s" % self.accounts[self.index % len(self.accounts)]
+        print("Switch account, please check old account %s" % self.accounts[self.index % len(self.accounts)])
         self.total_review = 0
         self.index = (self.index + 1) % len(self.accounts)
         self.chrome_helper.close()
@@ -64,11 +70,11 @@ class LinkedInCrawler(object):
         current = 0
         for ids in id_list:
             id_url = urlparse.urljoin("https://www.linkedin.com/jobs/view/", ids)
-            print "Working on url: %s" % id_url
+            print("Working on url: %s" % id_url)
             current += 1
             self.total_review += 1
-            print "progress report: %i in %i for %s" % (current, total_count, ids_file)
-            print "current account %s already reviewed %i pages!" % (self.accounts[self.index], self.total_review)
+            print("progress report: %i in %i for %s" % (current, total_count, ids_file))
+            print("current account %s already reviewed %i pages!" % (self.accounts[self.index], self.total_review))
             if self.total_review > 149:
                 self.login()  # Linkedin identify robot every 200 web page
 
@@ -102,26 +108,43 @@ class LinkedInCrawler(object):
 
 
 if __name__ == '__main__':
+    wu_dict = {u'na.us.mo': u'Missouri', u'na.us.il': u'Illinois', u'na.us.ma': u'Massachusetts',
+               u'na.us.in': u'Indiana', u'na.us.md': u'Maryland', u'na.us.me': u'Maine', u'na.us.wv': u'West Virginia',
+               u'na.us.ut': u'Utah', u'na.us.az': u'Arizona', u'na.us.de': u'Delaware', u'na.us.ok': u'Oklahoma',
+               u'na.us.co': u'Colorado', u'na.us.fl': u'Florida', u'na.us.wa': u'Washington',
+               u'na.us.dc': u'District Of Columbia', u'na.us.wi': u'Wisconsin'}
+
+    hu_dict = {u'na.us.ky': u'Kentucky', u'na.us.ct': u'Connecticut', u'na.us.ny': u'New York',
+               u'na.us.ri': u'Rhode Island', u'na.us.pa': u'Pennsylvania', u'na.us.nc': u'North Carolina',
+               u'na.us.ne': u'Nebraska', u'na.us.nd': u'North Dakota', u'na.us.nh': u'New Hampshire',
+               u'na.us.la': u'Louisiana', u'na.us.nj': u'New Jersey', u'na.us.nm': u'New Mexico',
+               u'na.us.vt': u'Vermont', u'na.us.hi': u'Hawaii'}
+
+    liu_dict = {u'na.us.ga': u'Georgia', u'na.us.tx': u'Texas', u'na.us.ar': u'Arkansas', u'na.us.wy': u'Wyoming',
+                u'na.us.al': u'Alabama', u'na.us.va': u'Virginia', u'na.us.ca': u'California', u'na.us.ak': u'Alaska',
+                u'na.us.ks': u'Kansas', u'na.us.tn': u'Tennessee', u'na.us.sc': u'South Carolina',
+                u'na.us.sd': u'South Dakota', u'na.us.or': u'Oregon', u'na.us.ms': u'Mississippi',
+                u'na.us.mt': u'Montana', u'na.us.id': u'Idaho', u'na.us.mi': u'Michigan', u'na.us.ia': u'Iowa',
+                u'na.us.mn': u'Minnesota'}
+
+    # step 1, change the dict name to your part of work
+    us_geography = wu_dict
+
+    # step 2, Add your created account to the following links
     accounts = [("testlink0a@gmail.com", "share12345"), ("testlink0b@gmail.com", "share12345")]
     crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
                               "../data/skills.dic")
-    raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
-    us_geography = DictHelper.generate_geography_dic(raw_dict, 'na.us', 1)
-    print us_geography
+    # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
+    # us_geography = DictHelper.generate_geography_dic(raw_dict, 'na.us', 1)
+    # print(us_geography)
     continue_failed = 0
-    escape = 2
-    # us_geography = {u'na.us.wa': u'Washington', u'na.us.dc': u'District Of Columbia', u'na.us.wi': u'Wisconsin'}
     for key, value in us_geography.items():
-        if escape > 0:
-            escape -= 1
-            continue
-        # crawler.craw_job("Data Scientist", value.encode('utf-8'), 1000, "../data/%s.ids.dat" % key.encode('utf-8'))
         status = crawler.get_post_information("../data/%s.ids.dat" % key.encode('utf-8'), "../data/post/%s.dat" %
                                      key.encode('utf-8'))
         if status is False:
             continue_failed += 1
             if continue_failed >= 2:
-                print "Program exit! Maybe robot identified!"
+                print("Program exit! Maybe robot identified!")
                 break
         else:
             continue_failed = 0
