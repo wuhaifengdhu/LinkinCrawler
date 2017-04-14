@@ -1,12 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
 import re
 import requests
 import urlparse
@@ -16,6 +10,11 @@ from bs4 import BeautifulSoup
 from urllib import urlencode
 from dict_helper import DictHelper
 from store_helper import StoreHelper
+from fake_useragent import UserAgent
+
+user_agent = UserAgent()
+failed_agent = {}
+current_agent = None
 
 
 class CrawlHelper(object):
@@ -41,7 +40,10 @@ class CrawlHelper(object):
         # print description
         soup = BeautifulSoup(web_source, "lxml")
         meta = soup.find('meta', {"property": "og:description"})
-        return meta['content'] if meta is not None else None
+        try:
+            return meta['content']
+        except Exception:
+            return None
 
     @staticmethod
     def get_travel_url(web_source, home_url="https://www.linkedin.com"):
@@ -51,7 +53,17 @@ class CrawlHelper(object):
     @staticmethod
     def get_web_source(web_url):
         time.sleep(random.choice([3, 5, 3, 5, 15, 3, 3, 5, 3]))
-        response = requests.get(web_url, auth=("kindlebookshare@163.com", "Linkedin0405"))
+        while True:
+            global current_agent
+            global failed_agent
+            current_agent = user_agent.random
+            if current_agent not in failed_agent or failed_agent[current_agent] < 3:
+                print ("use agent: %s" % current_agent)
+                break
+            else:
+                print ("agent can not use: %s" % current_agent)
+
+        response = requests.get(web_url, headers={'User-Agent': current_agent})
         print("Get web source from %s" % web_url)
         soup = BeautifulSoup(response.content.decode('utf-8'), 'html.parser')
         return soup.prettify().encode('utf-8')
@@ -82,45 +94,95 @@ class CrawlHelper(object):
     @staticmethod
     def crawl_post_information(ids_file, save_file):
         id_list = StoreHelper.load_data(ids_file)
-        continue_not_found = 0
-        post_list = {}
         total_count = len(id_list)
         current = 0
-        for ids in id_list:
-            id_url = urlparse.urljoin("https://www.linkedin.com/jobs/view/", ids)
-            print("Working on url: %s" % id_url)
-            current += 1
-            print("progress report: %i in %i for %s" % (current, total_count, ids_file))
+        continue_not_found = 0
 
-            web_source = CrawlHelper.get_web_source(id_url)
-            company = CrawlHelper.get_company_name(web_source)
-            post_content = CrawlHelper.get_post_information(web_source)
+        # Recover if already has post
+        post_list = CrawlHelper.recover_from_file(save_file)
+        if len(post_list) > 0:
+            current = sum([len(_value) for _value in post_list.values()])
+            id_list = id_list[current:]
+            print ("recover crawl from post job %i" % current)
+        last_save_account = current
+        failed_id_list = []
 
-            if post_content is None:
-                print ("No skills found for %s! Continue times %i" % (id_url, continue_not_found))
-                continue_not_found += 1
-                if continue_not_found > 3:
-                    break
-            else:
-                continue_not_found = 0
-                if company in post_list.keys():
-                    post_list[company].append((company, id_url, post_content))
+        retry = 3
+        while retry > 0:
+            for ids in id_list:
+                id_url = urlparse.urljoin("https://www.linkedin.com/jobs/view/", ids)
+                print("Working on url: %s" % id_url)
+                current += 1
+                print("progress report: %i in %i for %s" % (current, total_count, ids_file))
+
+                # Save checkpoint if get about 50 records
+                if current > last_save_account + 50:
+                    CrawlHelper.save_checkpoint(post_list, save_file)
+                    last_save_account = current
+
+                web_source = CrawlHelper.get_web_source(id_url)
+                company = CrawlHelper.get_company_name(web_source)
+                post_content = CrawlHelper.get_post_information(web_source)
+
+                if post_content is None:
+                    failed_id_list.append(ids)
+                    print ("No skills found for %s! Continue times %i" % (id_url, continue_not_found))
+                    continue_not_found += 1
+                    if continue_not_found > 3:
+                        break
+                    global current_agent
+                    global failed_agent
+                    if current_agent in failed_agent:
+                        failed_agent[current_agent] += 1
+                    else:
+                        failed_agent[current_agent] = 1
+                    print ("agent %s failed %i times" % (current_agent, failed_agent[current_agent]))
                 else:
-                    post_list[company] = [(company, id_url, post_content)]
+                    continue_not_found = 0
+                    if company in post_list.keys():
+                        post_list[company].append((company, id_url, post_content))
+                    else:
+                        post_list[company] = [(company, id_url, post_content)]
+
+            # retry for failed id list
+            if len(failed_id_list) == 0:
+                break
+            print ("retry times %i for failed %i job posts" % (4 - retry, len(failed_id_list)))
+            id_list = failed_id_list
+            failed_id_list = []
+            retry -= 1
         StoreHelper.store_data(post_list, save_file)
+        if len(failed_id_list) > 0:
+            StoreHelper.store_data(failed_id_list, "%s.failed" % save_file)
         return current >= total_count - 1
 
+    @staticmethod
+    def save_checkpoint(job_post, save_file):
+        # Save current loaded data into file
+        StoreHelper.store_data(job_post, save_file)
+
+    @staticmethod
+    def recover_from_file(file_name):
+        try:
+            job_list = StoreHelper.load_data(file_name)
+            return job_list
+        except IOError:
+            return {}
 
 if __name__ == '__main__':
-    raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
-    us_geography = DictHelper.generate_geography_dic(raw_dict, 'na.us', 1)
-    print(us_geography)
+    wu_dict = {u'na.us.mo': u'Missouri', u'na.us.il': u'Illinois', u'na.us.ma': u'Massachusetts',
+               u'na.us.in': u'Indiana', u'na.us.md': u'Maryland', u'na.us.me': u'Maine', u'na.us.wv': u'West Virginia',
+               u'na.us.ut': u'Utah', u'na.us.az': u'Arizona', u'na.us.de': u'Delaware', u'na.us.ok': u'Oklahoma',
+               u'na.us.co': u'Colorado', u'na.us.fl': u'Florida', u'na.us.wa': u'Washington',
+               u'na.us.dc': u'District Of Columbia', u'na.us.wi': u'Wisconsin'}
+
+    # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
+    # us_geography = DictHelper.generate_geography_dic(raw_dict, 'na.us', 1)
+    # print(us_geography)
+    us_geography = wu_dict
+
     continue_failed = 0
-    escape = 2
     for key, value in us_geography.items():
-        if escape > 0:
-            escape -= 1
-            continue
         status = CrawlHelper.crawl_post_information("../data/%s.ids.dat" % key.encode('utf-8'), "../data/post/%s.dat" % key.encode('utf-8'))
         if status is False:
             continue_failed += 1

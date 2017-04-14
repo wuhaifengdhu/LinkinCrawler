@@ -1,16 +1,10 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-1 -*-
 from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
-from __future__ import print_function
 import urlparse
 from urllib import urlencode
 from chrome_helper import ChromeHelper
 from dict_helper import DictHelper
-from job_posting import JobPosting
 from text_helper import TextHelper
 from store_helper import StoreHelper
 
@@ -25,15 +19,21 @@ class LinkedInCrawler(object):
         self.chrome_helper.authenticate("https://www.linkedin.com/uas/login-cap", accounts[self.index])
         self.skills_dict = DictHelper.load_dict_from_dic(skills_dict)
 
-    def login(self):
-        print("Switch account, please check old account %s" % self.accounts[self.index % len(self.accounts)])
-        self.total_review = 0
-        self.index = (self.index + 1) % len(self.accounts)
-        self.chrome_helper.close()
-        self.chrome_helper = ChromeHelper()
-        self.chrome_helper.authenticate("https://www.linkedin.com/uas/login-cap", self.accounts[self.index])
+    def switch_account(self):
+        if len(self.accounts) > 1:
+            print("Switch account, please check old account %s" % self.accounts[self.index % len(self.accounts)])
+            self.total_review = 0
+            self.index = (self.index + 1) % len(self.accounts)
+            self.chrome_helper.close()
+            self.chrome_helper = ChromeHelper()
+            self.chrome_helper.authenticate("https://www.linkedin.com/uas/login-cap", self.accounts[self.index])
 
-    def __crawl(self, job_posting, job_type, location, start):
+    @staticmethod
+    def save_checkpoint(job_post, save_file):
+        # Save current loaded data into file
+        StoreHelper.store_data(job_post, save_file)
+
+    def __crawl_job_id(self, job_posting, job_type, location, start):
         continue_not_found = 0
         job_search_url = self.__build_search_url(job_type, location, start)
         print(job_search_url)
@@ -49,34 +49,36 @@ class LinkedInCrawler(object):
         url_parts[4] = urlencode({'keywords': job_name, "location": location, 'start': start})
         return urlparse.urlunparse(url_parts)
 
-    def craw_job(self, job_type, location, total_page, result_file):
-        # job_posting = JobPosting(job_type, location, self.skills_dict)
+    def get_job_ids(self, job_type, location, total_page, result_file):
         job_id_list = []
         for i in range(total_page):
-            # if i % 60 == 0:
-            #     self.chrome_helper.close()
-            #     self.chrome_helper = ChromeHelper()
-            #     self.chrome_helper.authenticate("https://www.linkedin.com/uas/login-cap", self.accounts[i/60%2])
-            if not self.__crawl(job_id_list, job_type, location, i*25):
+            if not self.__crawl_job_id(job_id_list, job_type, location, i*25):
                 break
-        # print "Total post %i" % sum([len(job_posting.job_post_skills[company]) for company in job_posting.job_post_skills.keys()])
         StoreHelper.store_data(job_id_list, result_file)
 
     def get_post_information(self, ids_file, save_file):
         id_list = StoreHelper.load_data(ids_file)
         continue_not_found = 0
-        post_list = {}
+        post_list = self.recover_from_file(save_file)
         total_count = len(id_list)
         current = 0
+        if len(post_list) > 0:
+            current = sum([len(_value) for _value in post_list.values()])
+            id_list = id_list[current:]
+            print ("recover crawl from post job %i" % current)
+
         for ids in id_list:
             id_url = urlparse.urljoin("https://www.linkedin.com/jobs/view/", ids)
             print("Working on url: %s" % id_url)
             current += 1
             self.total_review += 1
             print("progress report: %i in %i for %s" % (current, total_count, ids_file))
+
+            # from account view
             print("current account %s already reviewed %i pages!" % (self.accounts[self.index], self.total_review))
             if self.total_review > 149:
-                self.login()  # Linkedin identify robot every 200 web page
+                self.switch_account()
+                self.save_checkpoint(post_list, save_file)  # Linkedin identify robot every 200 web page
 
             web_source = self.chrome_helper.get_web_source(id_url)
             company, skills_content = TextHelper.extract_company_skills(web_source)
@@ -105,6 +107,14 @@ class LinkedInCrawler(object):
                 post_list[company].append((company, id_url, skills_content))
             else:
                 post_list[company] = [(company, id_url, skills_content)]
+
+    @staticmethod
+    def recover_from_file(file_name):
+        try:
+            job_list = StoreHelper.load_data(file_name)
+            return job_list
+        except IOError:
+            return {}
 
 
 if __name__ == '__main__':
