@@ -31,7 +31,7 @@ class LinkedInCrawler(object):
             print("Stop crawl to take a rest!")
             return
         if len(self.accounts) > 1:
-            print("Switch account, please check old account %s" % self.accounts[self.index % len(self.accounts)])
+            print("Switch account, please check old account %s" % str(self.accounts[self.index]))
             self.total_review = 0
             self.chrome_helper.close()
             self.chrome_helper = ChromeHelper()
@@ -89,8 +89,8 @@ class LinkedInCrawler(object):
             # from account view
             print("current account %s already reviewed %i pages!" % (self.accounts[self.index], self.total_review))
             if self.total_review > 149:
-                self.switch_account()
                 self.save_checkpoint(post_list, save_file)  # Linkedin identify robot every 200 web page
+                self.switch_account()
                 if self.halt:
                     return True
 
@@ -176,7 +176,7 @@ class LinkedInCrawler(object):
         us_geography = wu_dict
 
         # step 2, Add your created account to the following links
-        accounts = [("liuxuuxuil@gmail.com", "ilovepanda")]
+        accounts = [("liuxuuxuil@gmail.com", "ilovepanda"), ("18918934803@163.com", "mengyunfang189")]
         crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
                                   "../data/skills.dic")
         # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
@@ -198,4 +198,5 @@ class LinkedInCrawler(object):
 
 
 if __name__ == "__main__":
-    LinkedInCrawler.run_crawal()
+    # LinkedInCrawler.run_crawal()
+	LinkedInCrawler.view_downloaded_data()
