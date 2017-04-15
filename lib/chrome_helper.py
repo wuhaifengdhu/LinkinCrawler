@@ -32,7 +32,7 @@ class ChromeHelper(object):
         self.__driver.find_element_by_id('session_key-login').send_keys(account[0])
         self.__driver.find_element_by_id('session_password-login').send_keys(account[1])
         self.__driver.find_element_by_id("btn-primary").click()
-        time.sleep(61)
+        time.sleep(random.uniform(4.5, 7.7))
         self.__has_authentication = True
         # self.__driver.close()
 
@@ -50,7 +50,7 @@ class ChromeHelper(object):
             print("Error! Not have authenticate yet!")
             return None
         self.__driver.get(url)
-        delay = random.choice([5, 3, 3, 13, 4, 15, 7, 60, 5, 3, 4, 5, 7, 9])  # random delay seconds
+        delay = random.uniform(3.5, 6.7)  # random delay seconds
         time.sleep(delay)
         try:
             WebDriverWait(self.__driver, delay).until(

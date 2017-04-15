@@ -15,7 +15,7 @@ class DictHelper(object):
 
     @staticmethod
     def load_dict_from_dic(dict_file):
-        return StoreHelper.load_data(dict_file)
+        return StoreHelper.load_data(dict_file, {})
 
     @staticmethod
     def save_dict(dic_data, dic_file):

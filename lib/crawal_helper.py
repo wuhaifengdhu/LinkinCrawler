@@ -11,10 +11,12 @@ from urllib import urlencode
 from dict_helper import DictHelper
 from store_helper import StoreHelper
 from fake_useragent import UserAgent
+from http_request_randomizer.requests.proxy.requestProxy import RequestProxy
 
 user_agent = UserAgent()
 failed_agent = {}
 current_agent = None
+req_proxy = RequestProxy()
 
 
 class CrawlHelper(object):
@@ -63,7 +65,9 @@ class CrawlHelper(object):
             else:
                 print ("agent can not use: %s" % current_agent)
 
-        response = requests.get(web_url, headers={'User-Agent': current_agent})
+        global req_proxy
+        # response = req_proxy.generate_proxied_request(web_url, headers={'User-Agent': current_agent})
+        response = req_proxy.generate_proxied_request(web_url)
         print("Get web source from %s" % web_url)
         soup = BeautifulSoup(response.content.decode('utf-8'), 'html.parser')
         return soup.prettify().encode('utf-8')
@@ -93,7 +97,7 @@ class CrawlHelper(object):
 
     @staticmethod
     def crawl_post_information(ids_file, save_file):
-        id_list = StoreHelper.load_data(ids_file)
+        id_list = StoreHelper.load_data(ids_file, [])
         total_count = len(id_list)
         current = 0
         continue_not_found = 0
@@ -159,15 +163,12 @@ class CrawlHelper(object):
     @staticmethod
     def save_checkpoint(job_post, save_file):
         # Save current loaded data into file
+        print ("Save crawled data to db!")
         StoreHelper.store_data(job_post, save_file)
 
     @staticmethod
     def recover_from_file(file_name):
-        try:
-            job_list = StoreHelper.load_data(file_name)
-            return job_list
-        except IOError:
-            return {}
+        return StoreHelper.load_data(file_name, {})
 
 if __name__ == '__main__':
     wu_dict = {u'na.us.mo': u'Missouri', u'na.us.il': u'Illinois', u'na.us.ma': u'Massachusetts',
