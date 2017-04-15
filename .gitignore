@@ -1,3 +1,4 @@
 .idea
 lib/*.pyc
 *.pyc
+.DS_Store

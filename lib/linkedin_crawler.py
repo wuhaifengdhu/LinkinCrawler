@@ -99,7 +99,7 @@ class LinkedInCrawler(object):
             if skills_content is None:
                 print ("No skills found for %s! Continue times %i" % (id_url, continue_not_found))
                 continue_not_found += 1
-                if continue_not_found > 3:
+                if continue_not_found >= 2:
                     break
             else:
                 continue_not_found = 0
@@ -152,7 +152,7 @@ class LinkedInCrawler(object):
             StoreHelper.store_data(total_list, save_file)
 
     @staticmethod
-    def run_crawal():
+    def run_crawl():
         wu_dict = {u'na.us.mo': u'Missouri', u'na.us.il': u'Illinois', u'na.us.ma': u'Massachusetts',
                    u'na.us.in': u'Indiana', u'na.us.md': u'Maryland', u'na.us.me': u'Maine', u'na.us.wv': u'West Virginia',
                    u'na.us.ut': u'Utah', u'na.us.az': u'Arizona', u'na.us.de': u'Delaware', u'na.us.ok': u'Oklahoma',
@@ -176,7 +176,7 @@ class LinkedInCrawler(object):
         us_geography = wu_dict
 
         # step 2, Add your created account to the following links
-        accounts = [("liuxuuxuil@gmail.com", "ilovepanda"), ("18918934803@163.com", "mengyunfang189")]
+        accounts = [("15052019856", "lin520321dan")]
         crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
                                   "../data/skills.dic")
         # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
@@ -196,6 +196,36 @@ class LinkedInCrawler(object):
             else:
                 continue_failed = 0
 
+    @staticmethod
+    def merge_data():
+        wu_dict = {u'na.us.mo': u'Missouri', u'na.us.il': u'Illinois', u'na.us.ma': u'Massachusetts',
+                   u'na.us.in': u'Indiana', u'na.us.md': u'Maryland', u'na.us.me': u'Maine',
+                   u'na.us.wv': u'West Virginia',
+                   u'na.us.ut': u'Utah', u'na.us.az': u'Arizona', u'na.us.de': u'Delaware', u'na.us.ok': u'Oklahoma',
+                   u'na.us.co': u'Colorado', u'na.us.fl': u'Florida', u'na.us.wa': u'Washington',
+                   u'na.us.dc': u'District Of Columbia', u'na.us.wi': u'Wisconsin'}
+        for key, value in wu_dict.items():
+            data_file = "../data/post/%s.dat" % key.encode('utf-8')
+            data_file2 = "../data2/post/%s.dat" % key.encode('utf-8')
+            post_list = StoreHelper.load_data(data_file, {})
+            post_list2 = StoreHelper.load_data(data_file2, {})
+            position_count = sum([len(value) for value in post_list.values()])
+            print ("Total %i company with %i position found in %s" % (len(post_list), position_count, data_file))
+            position_count2 = sum([len(value) for value in post_list2.values()])
+            print("Total %i company with %i position found in %s" % (len(post_list2), position_count2, data_file2))
+            for company in post_list2.keys():
+                if company in post_list.keys():
+                    post_list[company] = LinkedInCrawler.merge_list(post_list[company], post_list2[company])
+                else:
+                    post_list[company] = post_list2[company]
+            position_count = sum([len(value) for value in post_list.values()])
+            print ("Total %i company with %i position after merge!" % (len(post_list), position_count))
+            StoreHelper.store_data(post_list, data_file)
+
+    @staticmethod
+    def merge_list(list_a, list_b):
+        return list(set(list_a).union(set(list_b)))
+        
 
 if __name__ == "__main__":
-    LinkedInCrawler.run_crawal()
+    LinkedInCrawler.view_downloaded_data()
