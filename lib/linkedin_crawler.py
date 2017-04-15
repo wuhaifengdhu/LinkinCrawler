@@ -31,7 +31,7 @@ class LinkedInCrawler(object):
             print("Stop crawl to take a rest!")
             return
         if len(self.accounts) > 1:
-            print("Switch account, please check old account %s" % str(self.accounts[self.index]))
+            print("Switch account, please check old account %s" % str(self.accounts[(self.index - 1) / len(self.accounts)]))
             self.total_review = 0
             self.chrome_helper.close()
             self.chrome_helper = ChromeHelper()
@@ -198,5 +198,4 @@ class LinkedInCrawler(object):
 
 
 if __name__ == "__main__":
-    # LinkedInCrawler.run_crawal()
-	LinkedInCrawler.view_downloaded_data()
+    LinkedInCrawler.run_crawal()
