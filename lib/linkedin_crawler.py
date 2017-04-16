@@ -93,13 +93,15 @@ class LinkedInCrawler(object):
                 self.switch_account()
                 if self.halt:
                     return True
+            if self.total_review % 10 == 0:  # save file every 10
+                self.save_checkpoint(post_list, save_file)
 
             web_source = self.chrome_helper.get_web_source(id_url)
             company, skills_content = TextHelper.extract_company_skills(web_source)
             if skills_content is None:
                 print ("No skills found for %s! Continue times %i" % (id_url, continue_not_found))
                 continue_not_found += 1
-                if continue_not_found >= 2:
+                if continue_not_found >= 1:
                     break
             else:
                 continue_not_found = 0
@@ -176,7 +178,7 @@ class LinkedInCrawler(object):
         us_geography = wu_dict
 
         # step 2, Add your created account to the following links
-        accounts = [("liuxuuxuil@gmail.com", "ilovepanda"), ("460307644@qq.com", "mengyunfang189"), ("18918934803@163.com", "mengyunfang189")]
+        accounts = [("+8615052019856", "lin520321dan")]
         crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
                                   "../data/skills.dic")
         # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
@@ -190,8 +192,9 @@ class LinkedInCrawler(object):
                 break
             if status is False:
                 continue_failed += 1
-                if continue_failed >= 2:
+                if continue_failed >= 1:
                     print("Program exit! Maybe robot identified!")
+                    print("Please check current account %s" % str(crawler.accounts[crawler.index]))
                     break
             else:
                 continue_failed = 0

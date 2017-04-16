@@ -125,8 +125,8 @@ class CrawlHelper(object):
                 current += 1
                 print("progress report: %i in %i for %s" % (current, total_count, ids_file))
 
-                # Save checkpoint if get about 50 records
-                if current > last_save_account + 50:
+                # Save checkpoint if get about 10 records
+                if current > last_save_account + 10:
                     CrawlHelper.save_checkpoint(post_list, save_file)
                     last_save_account = current
 
