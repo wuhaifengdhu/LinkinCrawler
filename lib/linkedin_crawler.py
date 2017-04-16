@@ -176,7 +176,7 @@ class LinkedInCrawler(object):
         us_geography = wu_dict
 
         # step 2, Add your created account to the following links
-        accounts = [("15052019856", "lin520321dan")]
+        accounts = [("liuxuuxuil@gmail.com", "ilovepanda"), ("460307644@qq.com", "mengyunfang189"), ("18918934803@163.com", "mengyunfang189")]
         crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
                                   "../data/skills.dic")
         # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
