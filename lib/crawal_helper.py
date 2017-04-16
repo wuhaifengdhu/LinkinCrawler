@@ -16,7 +16,8 @@ from http_request_randomizer.requests.proxy.requestProxy import RequestProxy
 user_agent = UserAgent()
 failed_agent = {}
 current_agent = None
-req_proxy = RequestProxy()
+change_agent = True
+req_proxy = RequestProxy(sustain=True)
 
 
 class CrawlHelper(object):
@@ -55,19 +56,24 @@ class CrawlHelper(object):
     @staticmethod
     def get_web_source(web_url):
         time.sleep(random.choice([3, 5, 3, 5, 15, 3, 3, 5, 3]))
-        while True:
-            global current_agent
-            global failed_agent
-            current_agent = user_agent.random
-            if current_agent not in failed_agent or failed_agent[current_agent] < 3:
-                print ("use agent: %s" % current_agent)
-                break
-            else:
-                print ("agent can not use: %s" % current_agent)
+        global change_agent
+        if change_agent:
+            while True:
+                global current_agent
+                global failed_agent
+                current_agent = user_agent.random
+                if current_agent not in failed_agent or failed_agent[current_agent] < 3:
+                    print ("use agent: %s" % current_agent)
+                    break
+                else:
+                    print ("agent can not use: %s" % current_agent)
+            change_agent = False
 
         global req_proxy
         # response = req_proxy.generate_proxied_request(web_url, headers={'User-Agent': current_agent})
-        response = req_proxy.generate_proxied_request(web_url)
+        # response = req_proxy.generate_proxied_request(web_url)
+        # response = requests.get(web_url, proxies={'http': 'http://138.68.132.206:3128'}, headers={'User-Agent': current_agent})
+        response = requests.get(web_url, headers={'User-Agent': current_agent})
         print("Get web source from %s" % web_url)
         soup = BeautifulSoup(response.content.decode('utf-8'), 'html.parser')
         return soup.prettify().encode('utf-8')
@@ -136,6 +142,10 @@ class CrawlHelper(object):
                         break
                     global current_agent
                     global failed_agent
+                    global change_agent
+                    global req_proxy
+                    req_proxy.randomize_proxy()
+                    change_agent = True
                     if current_agent in failed_agent:
                         failed_agent[current_agent] += 1
                     else:
