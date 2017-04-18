@@ -13,11 +13,11 @@ from store_helper import StoreHelper
 from fake_useragent import UserAgent
 from http_request_randomizer.requests.proxy.requestProxy import RequestProxy
 
-user_agent = UserAgent()
-failed_agent = {}
-current_agent = None
-change_agent = True
-req_proxy = RequestProxy(sustain=True)
+# user_agent = UserAgent()
+# failed_agent = {}
+# current_agent = None
+# change_agent = True
+# req_proxy = RequestProxy(sustain=True)
 
 
 class CrawlHelper(object):
@@ -56,24 +56,25 @@ class CrawlHelper(object):
     @staticmethod
     def get_web_source(web_url):
         time.sleep(random.choice([3, 5, 3, 5, 15, 3, 3, 5, 3]))
-        global change_agent
-        if change_agent:
-            while True:
-                global current_agent
-                global failed_agent
-                current_agent = user_agent.random
-                if current_agent not in failed_agent or failed_agent[current_agent] < 3:
-                    print ("use agent: %s" % current_agent)
-                    break
-                else:
-                    print ("agent can not use: %s" % current_agent)
-            change_agent = False
-
-        global req_proxy
+        # global change_agent
+        # if change_agent:
+        #     while True:
+        #         global current_agent
+        #         global failed_agent
+        #         current_agent = user_agent.random
+        #         if current_agent not in failed_agent or failed_agent[current_agent] < 3:
+        #             print ("use agent: %s" % current_agent)
+        #             break
+        #         else:
+        #             print ("agent can not use: %s" % current_agent)
+        #     change_agent = False
+        #
+        # global req_proxy
         # response = req_proxy.generate_proxied_request(web_url, headers={'User-Agent': current_agent})
         # response = req_proxy.generate_proxied_request(web_url)
         # response = requests.get(web_url, proxies={'http': 'http://138.68.132.206:3128'}, headers={'User-Agent': current_agent})
-        response = requests.get(web_url, headers={'User-Agent': current_agent})
+        headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
+        response = requests.get(web_url, headers=headers)
         print("Get web source from %s" % web_url)
         soup = BeautifulSoup(response.content.decode('utf-8'), 'html.parser')
         return soup.prettify().encode('utf-8')
@@ -124,6 +125,8 @@ class CrawlHelper(object):
                 print("Working on url: %s" % id_url)
                 current += 1
                 print("progress report: %i in %i for %s" % (current, total_count, ids_file))
+                if current % 9 == 0:
+                    time.sleep(90)
 
                 # Save checkpoint if get about 10 records
                 if current > last_save_account + 10:
@@ -138,19 +141,20 @@ class CrawlHelper(object):
                     failed_id_list.append(ids)
                     print ("No skills found for %s! Continue times %i" % (id_url, continue_not_found))
                     continue_not_found += 1
-                    if continue_not_found > 3:
+                    if continue_not_found >= 1:
+                        retry = 0
                         break
-                    global current_agent
-                    global failed_agent
-                    global change_agent
-                    global req_proxy
-                    req_proxy.randomize_proxy()
-                    change_agent = True
-                    if current_agent in failed_agent:
-                        failed_agent[current_agent] += 1
-                    else:
-                        failed_agent[current_agent] = 1
-                    print ("agent %s failed %i times" % (current_agent, failed_agent[current_agent]))
+                    # global current_agent
+                    # global failed_agent
+                    # global change_agent
+                    # global req_proxy
+                    # req_proxy.randomize_proxy()
+                    # change_agent = True
+                    # if current_agent in failed_agent:
+                    #     failed_agent[current_agent] += 1
+                    # else:
+                    #     failed_agent[current_agent] = 1
+                    # print ("agent %s failed %i times" % (current_agent, failed_agent[current_agent]))
                 else:
                     continue_not_found = 0
                     if company in post_list.keys():
@@ -197,7 +201,7 @@ if __name__ == '__main__':
         status = CrawlHelper.crawl_post_information("../data/%s.ids.dat" % key.encode('utf-8'), "../data/post/%s.dat" % key.encode('utf-8'))
         if status is False:
             continue_failed += 1
-            if continue_failed >= 2:
+            if continue_failed >= 1:
                 print("Program exit! Maybe robot identified!")
                 break
         else:

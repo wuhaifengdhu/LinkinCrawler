@@ -2,6 +2,7 @@
 # -*- coding: iso-8859-1 -*-
 from __future__ import print_function
 import urlparse
+import time
 from urllib import urlencode
 from chrome_helper import ChromeHelper
 from dict_helper import DictHelper
@@ -26,10 +27,11 @@ class LinkedInCrawler(object):
             # retake
             self.index = self.index % len(self.accounts)
 
-            # comment the following two line if you want relay on accounts
-            self.halt = True
-            print("Stop crawl to take a rest!")
-            return
+            # comment the following three line if you want relay on accounts
+            # self.halt = True
+            # print("Stop crawl to take a rest!")
+            # return
+            time.sleep(100)
         if len(self.accounts) > 1:
             print("Switch account, please check old account %s" % str(self.accounts[(self.index - 1) / len(self.accounts)]))
             self.total_review = 0
@@ -88,7 +90,7 @@ class LinkedInCrawler(object):
 
             # from account view
             print("current account %s already reviewed %i pages!" % (self.accounts[self.index], self.total_review))
-            if self.total_review > 149:
+            if self.total_review > 59:
                 self.save_checkpoint(post_list, save_file)  # Linkedin identify robot every 200 web page
                 self.switch_account()
                 if self.halt:
@@ -97,7 +99,8 @@ class LinkedInCrawler(object):
                 self.save_checkpoint(post_list, save_file)
 
             web_source = self.chrome_helper.get_web_source(id_url)
-            company, skills_content = TextHelper.extract_company_skills(web_source)
+            if web_source is not None:
+                company, skills_content = TextHelper.extract_company_skills(web_source)
             if skills_content is None:
                 print ("No skills found for %s! Continue times %i" % (id_url, continue_not_found))
                 continue_not_found += 1
@@ -142,8 +145,9 @@ class LinkedInCrawler(object):
         for key, value in dict_list.items():
             data_file = "../data/post/%s.dat" % key.encode('utf-8')
             post_list = StoreHelper.load_data(data_file, {})
+            url_list = StoreHelper.load_data("../data/%s.ids.dat" % key.encode('utf-8'), [])
             position_count = sum([len(value) for value in post_list.values()])
-            print ("Total %i company with %i position found in %s" % (len(post_list), position_count, data_file))
+            print ("Total %i company with %i position(full: %i) found in %s" % (len(post_list), position_count, len(url_list), data_file))
             for company in post_list.keys():
                 if company in total_list.keys():
                     total_list[company].append(post_list[company])
@@ -178,7 +182,7 @@ class LinkedInCrawler(object):
         us_geography = wu_dict
 
         # step 2, Add your created account to the following links
-        accounts = [("+8615052019856", "lin520321dan")]
+        accounts = [("836585244@qq.com", "hfwuwuhaifeng123"), ("642168618@qq.com", "hfwuwuhaifeng123")]
         crawler = LinkedInCrawler("https://www.linkedin.com/jobs/search", accounts,
                                   "../data/skills.dic")
         # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
@@ -228,7 +232,38 @@ class LinkedInCrawler(object):
     @staticmethod
     def merge_list(list_a, list_b):
         return list(set(list_a).union(set(list_b)))
-        
+
+    @staticmethod
+    def view_post_url_total():
+        wu_dict = {u'na.us.mo': u'Missouri', u'na.us.il': u'Illinois', u'na.us.ma': u'Massachusetts',
+                   u'na.us.in': u'Indiana', u'na.us.md': u'Maryland', u'na.us.me': u'Maine',
+                   u'na.us.wv': u'West Virginia',
+                   u'na.us.ut': u'Utah', u'na.us.az': u'Arizona', u'na.us.de': u'Delaware', u'na.us.ok': u'Oklahoma',
+                   u'na.us.co': u'Colorado', u'na.us.fl': u'Florida', u'na.us.wa': u'Washington',
+                   u'na.us.dc': u'District Of Columbia', u'na.us.wi': u'Wisconsin'}
+
+        hu_dict = {u'na.us.ky': u'Kentucky', u'na.us.ct': u'Connecticut', u'na.us.ny': u'New York',
+                   u'na.us.ri': u'Rhode Island', u'na.us.pa': u'Pennsylvania', u'na.us.nc': u'North Carolina',
+                   u'na.us.ne': u'Nebraska', u'na.us.nd': u'North Dakota', u'na.us.nh': u'New Hampshire',
+                   u'na.us.la': u'Louisiana', u'na.us.nj': u'New Jersey', u'na.us.nm': u'New Mexico',
+                   u'na.us.vt': u'Vermont', u'na.us.hi': u'Hawaii'}
+
+        liu_dict = {u'na.us.ga': u'Georgia', u'na.us.tx': u'Texas', u'na.us.ar': u'Arkansas', u'na.us.wy': u'Wyoming',
+                    u'na.us.al': u'Alabama', u'na.us.va': u'Virginia', u'na.us.ca': u'California',
+                    u'na.us.ak': u'Alaska',
+                    u'na.us.ks': u'Kansas', u'na.us.tn': u'Tennessee', u'na.us.sc': u'South Carolina',
+                    u'na.us.sd': u'South Dakota', u'na.us.or': u'Oregon', u'na.us.ms': u'Mississippi',
+                    u'na.us.mt': u'Montana', u'na.us.id': u'Idaho', u'na.us.mi': u'Michigan', u'na.us.ia': u'Iowa',
+                    u'na.us.mn': u'Minnesota'}
+        total_dict = wu_dict
+        total_dict.update(liu_dict)
+        total_dict.update(hu_dict)
+        total_num = 0
+        for key, value in total_dict.items():
+            url_list = StoreHelper.load_data("../data/%s.ids.dat" % key.encode('utf-8'), [])
+            total_num += len(url_list)
+            print ("total %i record in file %s" % (len(url_list), "../data/%s.ids.dat" % key.encode('utf-8')))
+        print ("In summary, total %i record" % total_num)
 
 if __name__ == "__main__":
     LinkedInCrawler.view_downloaded_data()

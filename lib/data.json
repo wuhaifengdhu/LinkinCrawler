@@ -1,0 +1,34 @@
+[
+    {
+        "website": "http://www.microsoft.com/", 
+        "description": "At Microsoft, our mission is to empower every person and every organization on the planet to achieve more. Our mission is grounded in both the world in which we live and the future we strive to create. Today, we live in a mobile-first, cloud-first world, and the transformation we are driving across our businesses is designed to enable Microsoft and our customers to thrive in this world. \n\nWe do business in 170 countries and are made up of 114,000 passionate employees dedicated to fulfilling our mission of helping you and your organization achieve more.\n", 
+        "founded": 1975, 
+        "street": "1 Microsoft Way, ", 
+        "specialities": [
+            "Business Software", 
+            "Design Tools", 
+            "Developer Tools", 
+            "Entertainment Products", 
+            "Hardware", 
+            "Home & Educational Software", 
+            "Tablets", 
+            "Search", 
+            "Advertising", 
+            "Servers", 
+            "Windows Operating System", 
+            "Windows Applications & Platforms", 
+            "Smartphones", 
+            "Cloud Computing"
+        ], 
+        "size": "10,001+ employees", 
+        "city": "Redmond", 
+        "zip": "98052", 
+        "url": "https://www.linkedin.com/company/microsoft", 
+        "country": "United States", 
+        "industry": "Computer Software", 
+        "state": "WA", 
+        "company_name": "Microsoft", 
+        "follower_count": 3628113, 
+        "type": "Public Company"
+    }
+]

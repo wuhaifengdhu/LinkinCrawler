@@ -25,6 +25,12 @@ class ChromeHelper(object):
         driver_path = os.path.join(self.__home_folder, 'chromedriver')
         os.environ["webdriver.chrome.driver"] = driver_path
         return webdriver.Chrome(driver_path)
+        # phantom_js_path = "/usr/local/lib/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs"
+        # driver = webdriver.PhantomJS(executable_path=phantom_js_path)  # or add to your PATH
+        # return driver
+
+    def clean_cookie(self):
+        self.__driver.delete_all_cookies()
 
     def authenticate(self, author_url, account):
         self.__driver.get(author_url)
@@ -34,7 +40,6 @@ class ChromeHelper(object):
         self.__driver.find_element_by_id("btn-primary").click()
         time.sleep(random.uniform(4.5, 7.7))
         self.__has_authentication = True
-        # self.__driver.close()
 
     def close(self):
         self.__driver.close()
