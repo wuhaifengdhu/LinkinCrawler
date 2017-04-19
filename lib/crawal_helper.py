@@ -55,7 +55,7 @@ class CrawlHelper(object):
 
     @staticmethod
     def get_web_source(web_url):
-        time.sleep(random.choice([3, 5, 3, 5, 15, 3, 3, 5, 3]))
+        # time.sleep(random.choice([3, 5, 3, 5, 15, 3, 3, 5, 3]))
         # global change_agent
         # if change_agent:
         #     while True:
@@ -74,7 +74,7 @@ class CrawlHelper(object):
         # response = req_proxy.generate_proxied_request(web_url)
         # response = requests.get(web_url, proxies={'http': 'http://138.68.132.206:3128'}, headers={'User-Agent': current_agent})
         headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
-        response = requests.get(web_url, headers=headers)
+        response = requests.get(web_url)
         print("Get web source from %s" % web_url)
         soup = BeautifulSoup(response.content.decode('utf-8'), 'html.parser')
         return soup.prettify().encode('utf-8')
@@ -118,6 +118,7 @@ class CrawlHelper(object):
         last_save_account = current
         failed_id_list = []
 
+        total_crawled = 0
         retry = 3
         while retry > 0:
             for ids in id_list:
@@ -125,8 +126,8 @@ class CrawlHelper(object):
                 print("Working on url: %s" % id_url)
                 current += 1
                 print("progress report: %i in %i for %s" % (current, total_count, ids_file))
-                if current % 9 == 0:
-                    time.sleep(90)
+                # if current % 9 == 0:
+                #     time.sleep(90)
 
                 # Save checkpoint if get about 10 records
                 if current > last_save_account + 10:
@@ -156,6 +157,7 @@ class CrawlHelper(object):
                     #     failed_agent[current_agent] = 1
                     # print ("agent %s failed %i times" % (current_agent, failed_agent[current_agent]))
                 else:
+                    total_crawled += 1
                     continue_not_found = 0
                     if company in post_list.keys():
                         post_list[company].append((company, id_url, post_content))
@@ -172,7 +174,10 @@ class CrawlHelper(object):
         StoreHelper.store_data(post_list, save_file)
         if len(failed_id_list) > 0:
             StoreHelper.store_data(failed_id_list, "%s.failed" % save_file)
-        return current >= total_count - 1
+
+        if current >= total_count -1:
+            return -1  # means succeed
+        return total_crawled
 
     @staticmethod
     def save_checkpoint(job_post, save_file):
@@ -184,6 +189,15 @@ class CrawlHelper(object):
     def recover_from_file(file_name):
         return StoreHelper.load_data(file_name, {})
 
+    @staticmethod
+    def run_crawl(us_geography):
+        for key, value in us_geography.items():
+            crawled_count = CrawlHelper.crawl_post_information("../data/%s.ids.dat" % key.encode('utf-8'),
+                                                        "../data/post/%s.dat" % key.encode('utf-8'))
+            if crawled_count != -1:
+                return crawled_count
+        return -1   # Finished all crawl job
+
 if __name__ == '__main__':
     wu_dict = {u'na.us.mo': u'Missouri', u'na.us.il': u'Illinois', u'na.us.ma': u'Massachusetts',
                u'na.us.in': u'Indiana', u'na.us.md': u'Maryland', u'na.us.me': u'Maine', u'na.us.wv': u'West Virginia',
@@ -194,15 +208,22 @@ if __name__ == '__main__':
     # raw_dict = DictHelper.load_dict_from_excel("../resource/linkedin_geography.xlsx")
     # us_geography = DictHelper.generate_geography_dic(raw_dict, 'na.us', 1)
     # print(us_geography)
-    us_geography = wu_dict
-
-    continue_failed = 0
-    for key, value in us_geography.items():
-        status = CrawlHelper.crawl_post_information("../data/%s.ids.dat" % key.encode('utf-8'), "../data/post/%s.dat" % key.encode('utf-8'))
-        if status is False:
-            continue_failed += 1
-            if continue_failed >= 1:
-                print("Program exit! Maybe robot identified!")
-                break
+    detector_delay = 60
+    min_delay = 0
+    while True:
+        last_crawled = CrawlHelper.run_crawl(wu_dict)
+        if last_crawled == -1: # all job finished
+            break
+        elif last_crawled == 0:
+            min_delay = detector_delay
+            print ("Min delay set to %i due to 0 records crawled!" % min_delay)
+            detector_delay *= 2
         else:
-            continue_failed = 0
+            detector_delay -= 1 if detector_delay > min_delay else detector_delay
+            print ("Delay %i crawl %i record" % (detector_delay, last_crawled))
+        print ("Sleep for time %i seconds" % detector_delay)
+        time.sleep(detector_delay)
+    print ("All data crawled for this dict!")
+
+
+
