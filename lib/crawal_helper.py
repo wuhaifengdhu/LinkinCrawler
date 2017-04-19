@@ -5,13 +5,13 @@ import re
 import requests
 import urlparse
 import time
-import random
+# import random
 from bs4 import BeautifulSoup
 from urllib import urlencode
-from dict_helper import DictHelper
+# from dict_helper import DictHelper
 from store_helper import StoreHelper
-from fake_useragent import UserAgent
-from http_request_randomizer.requests.proxy.requestProxy import RequestProxy
+# from fake_useragent import UserAgent
+# from http_request_randomizer.requests.proxy.requestProxy import RequestProxy
 
 # user_agent = UserAgent()
 # failed_agent = {}
