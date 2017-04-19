@@ -214,12 +214,13 @@ if __name__ == '__main__':
         last_crawled = CrawlHelper.run_crawl(wu_dict)
         if last_crawled == -1: # all job finished
             break
-        elif last_crawled == 0:
+        elif last_crawled <= 5:
             min_delay = detector_delay
             print ("Min delay set to %i due to 0 records crawled!" % min_delay)
             detector_delay *= 2
         else:
-            detector_delay -= 1 if detector_delay > min_delay else detector_delay
+            if last_crawled > 15:
+                detector_delay -= 1 if detector_delay > min_delay else detector_delay
             print ("Delay %i crawl %i record" % (detector_delay, last_crawled))
         print ("Sleep for time %i seconds" % detector_delay)
         time.sleep(detector_delay)
